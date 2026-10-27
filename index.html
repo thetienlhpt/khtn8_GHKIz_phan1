@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu Học Tập - Lịch Sử & Địa Lý 8</title>
+    <style>
+        /* CSS Reset & Variables */
+        :root {
+            --dark-blue: #0a192f; /* Nền xanh dương đậm */
+            --header-blue: #172a45;
+            --text-main: #e2e8f0;
+            --card-bg-1: #112240; /* Nền tối đan xen cho card 1 */
+            --card-bg-2: #1a365d; /* Nền tối đan xen cho card 2 */
+            --text-dark: #f8fafc; /* Chữ sáng để nổi trên nền tối */
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--dark-blue);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 80px;
+            font-size: 16px; /* Cỡ chữ cơ sở chuẩn cho mobile */
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px 15px;
+            background-color: var(--header-blue);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            color: #fbbf24;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+
+        /* Fixed Stats Bar */
+        .stats-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(15, 23, 42, 0.98);
+            border-top: 2px solid var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 5px;
+            z-index: 1000;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .stat-correct { color: #4ade80; }
+        .stat-wrong { color: #f87171; }
+        .stat-attempt { color: #fbbf24; }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Forms & Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box, .result-box {
+            background-color: var(--card-bg-1);
+            color: var(--text-dark);
+            padding: 25px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            text-align: center;
+            max-width: 100%;
+            margin: 20px auto;
+            border: 1px solid #1e293b;
+        }
+
+        .login-box h2, .result-box h2 {
+            color: #60a5fa;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #334155;
+            background-color: #0f172a;
+            color: white;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        /* Buttons (Đảm bảo vùng chạm lớn cho mobile >= 48px) */
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            min-height: 52px;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn:disabled {
+            background-color: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Quiz Layout */
+        #quiz-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .question-card {
+            border-radius: 12px;
+            padding: 20px 15px;
+            color: var(--text-dark);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.4s forwards ease-out;
+            border: 1px solid #1e293b;
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bg-style-0 { background-color: var(--card-bg-1); }
+        .bg-style-1 { background-color: var(--card-bg-2); }
+
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+            color: #f1f5f9;
+            line-height: 1.5;
+        }
+
+        /* Multiple Choice Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 15px;
+            background-color: #1e293b;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #f8fafc;
+            min-height: 48px;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #475569;
+            background-color: #334155;
+        }
+
+        /* True/False Options (Flexbox/Grid Mobile Optimized) */
+        .tf-item {
+            background-color: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tf-text { flex: 1; font-weight: 500; font-size: 1.1rem; line-height: 1.5; }
+        .tf-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .tf-btn {
+            padding: 12px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: #334155;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-height: 48px;
+            transition: 0.2s;
+        }
+        .tf-btn:active:not(:disabled) { transform: scale(0.95); }
+
+        /* Answer States */
+        .correct {
+            background-color: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+        }
+        .wrong {
+            background-color: var(--danger) !important;
+            color: white !important;
+            border-color: var(--danger) !important;
+        }
+
+        /* Small Explanation Text */
+        .explanation {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: rgba(220, 38, 38, 0.1);
+            border-left: 4px solid var(--danger);
+            color: #fca5a5; /* Đỏ nhạt để dễ đọc trên nền tối */
+            font-size: 0.95rem; /* Nhỏ hơn text chính */
+            line-height: 1.4;
+            border-radius: 4px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .action-area {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .result-box p { margin-bottom: 12px; font-size: 1.2rem; }
+        .res-score { font-size: 2.2rem; font-weight: bold; color: var(--success); margin: 20px 0;}
+        .res-msg { font-style: italic; color: #fbbf24; font-weight: bold; font-size: 1.1rem;}
+
+        /* Footer Watermark */
+        .footer-watermark {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 1rem;
+            font-style: italic;
+            margin-bottom: 30px; /* Chừa chỗ cho stats bar */
+        }
+
+        /* Media Queries for larger screens (Tablet/Desktop) */
+        @media (min-width: 640px) {
+            body { font-size: 18px; }
+            .header h1 { font-size: 1.8rem; }
+            .login-box, .result-box { padding: 40px; }
+            .tf-item { flex-direction: row; align-items: center; justify-content: space-between; }
+            .tf-actions { grid-template-columns: auto auto; min-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>ĐỀ CƯƠNG KIỂM TRA GIỮA HỌC KỲ I<br>LỊCH SỬ & ĐỊA LÝ 8 (2026 - 2027)</h1>
+    </header>
+
+    <div class="stats-bar" id="stats-bar" style="display: none;">
+        <div class="stat-item stat-attempt">Lượt thi: <span id="ui-attempts">0</span></div>
+        <div class="stat-item">Đã làm: <span id="ui-completed">0</span>/30</div>
+        <div class="stat-item stat-correct">Đúng: <span id="ui-correct">0</span></div>
+        <div class="stat-item stat-wrong">Sai: <span id="ui-wrong">0</span></div>
+    </div>
+
+    <div class="container">
+        <!-- SCREEN: LOGIN -->
+        <div id="screen-login" class="screen active">
+            <div class="login-box">
+                <h2>THÔNG TIN HỌC SINH</h2>
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <input type="text" id="student-name" placeholder="Nhập họ và tên...">
+                </div>
+                <div class="form-group">
+                    <label>Lớp</label>
+                    <input type="text" id="student-class" placeholder="Nhập lớp (VD: 8A1)...">
+                </div>
+                <button class="btn" onclick="startQuiz()">BẮT ĐẦU LÀM BÀI</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: QUIZ -->
+        <div id="screen-quiz" class="screen">
+            <div id="quiz-flow">
+                <!-- Questions will be injected here sequentially -->
+            </div>
+        </div>
+
+        <!-- SCREEN: RESULT -->
+        <div id="screen-result" class="screen">
+            <div class="result-box">
+                <h2>TỔNG KẾT</h2>
+                <p><strong>Họ tên:</strong> <span id="res-name"></span></p>
+                <p><strong>Lớp:</strong> <span id="res-class"></span></p>
+                <p><strong>Số lượt làm bài:</strong> <span id="res-attempts"></span></p>
+                <div class="res-score"><span id="res-correct">0</span> / 48 ý</div>
+                <p class="res-msg" id="res-msg"></p>
+                <button class="btn" style="margin-top: 25px;" onclick="retryQuiz()">LÀM LẠI BÀI (ĐẢO CÂU)</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-watermark">
+        Thiết kế bởi GV. Nguyễn Tiên
+    </footer>
+
+    <script>
+        // --- DATA WITH EXPLANATIONS ---
+        const dataPart1 = [
+            {
+                q: "Câu 1: Đâu là nguyên nhân chính bùng nổ các cuộc cách mạng tư sản?",
+                options: [
+                    "A. Nông dân không có ruộng đất nổi dậy",
+                    "B. Chế độ phong kiến cản trở sự phát triển của kinh tế tư bản chủ nghĩa",
+                    "C. Các nước láng giềng xâm lược",
+                    "D. Giai cấp công nhân đòi hỏi quyền làm chủ"
+                ],
+                correct: 1,
+                explanation: "Chế độ phong kiến bảo thủ đã kìm hãm mầm mống kinh tế tư bản chủ nghĩa đang phát triển mạnh mẽ, đây là nguyên nhân sâu xa và chính yếu nhất dẫn đến cách mạng."
+            },
+            {
+                q: "Câu 2: Thành tựu nào sau đây thuộc về cách mạng công nghiệp?",
+                options: [
+                    "A. Phát minh ra máy tính cá nhân",
+                    "B. Phát minh động cơ hơi nước cải tiến",
+                    "C. Phát minh ra điện thoại di động",
+                    "D. Sử dụng năng lượng nguyên tử trong sản xuất"
+                ],
+                correct: 1,
+                explanation: "Động cơ hơi nước (do J. Watt cải tiến) là thành tựu vĩ đại nhất của Cách mạng công nghiệp, cung cấp động lực cho máy móc hoạt động không phụ thuộc vào tự nhiên."
+            },
+            {
+                q: "Câu 3: Điểm chung trong quá trình xâm nhập của thực dân phương Tây vào Đông Nam Á là gì?",
+                options: [
+                    "A. Đến trước hết với tư cách là những nhà truyền giáo, sau đó mới mở rộng xâm chiếm chính trị",
+                    "B. Ngay lập tức đưa quân xâm chiếm toàn bộ đất nước",
+                    "C. Giúp các nước xây dựng nhà máy, đường sá trước khi cai trị",
+                    "D. Đến trao đổi văn hóa và tự nguyện rời đi"
+                ],
+                correct: 0,
+                explanation: "Thực dân phương Tây thường dùng chiêu bài truyền giáo hoặc buôn bán để dò la tình hình, làm tiền đề cho các cuộc xâm lược vũ trang sau đó."
+            },
+            {
+                q: "Câu 4: Phong trào đấu tranh chống thực dân ở Đông Nam Á giai đoạn cuối thế kỷ XIX có đặc điểm nào?",
+                options: [
+                    "A. Đã có đảng phái lãnh đạo thống nhất trên toàn quốc",
+                    "B. Chủ yếu do quý tộc, sĩ phu lãnh đạo, hình thức vũ trang tự phát",
+                    "C. Kết hợp đấu tranh chính trị với ngoại giao thành công",
+                    "D. Giành được độc lập cho hầu hết các nước"
+                ],
+                correct: 1,
+                explanation: "Giai đoạn này phong trào chủ yếu mang tính tự phát, do giới trí thức phong kiến (sĩ phu, quý tộc) lãnh đạo, chưa có đường lối tiên tiến nên đa số thất bại."
+            },
+            {
+                q: "Câu 5: Quá trình mở cõi của Đại Việt từ thế kỷ XVI đến XVIII diễn ra chủ yếu theo hướng nào?",
+                options: ["A. Về phía Bắc", "B. Về phía Tây", "C. Về phía Nam", "D. Về phía Đông ra biển"],
+                correct: 2,
+                explanation: "Lịch sử gọi đây là quá trình 'Nam tiến', mở rộng lãnh thổ xuống phía Nam của các chúa Nguyễn để khai phá vùng đất mới."
+            },
+            {
+                q: "Câu 6: Nguyên nhân chính dẫn đến xung đột Trịnh – Nguyễn là gì?",
+                options: [
+                    "A. Trịnh và Nguyễn tranh giành quyền kiểm soát triều đình và vùng đất",
+                    "B. Do ngoại xâm chia rẽ hai phe",
+                    "C. Nhân dân hai vùng có mâu thuẫn từ lâu",
+                    "D. Vua Lê giao cho hai bên cai trị riêng"
+                ],
+                correct: 0,
+                explanation: "Sau khi nhà Mạc bị đánh bại, mâu thuẫn quyền lực giữa hai dòng họ Trịnh (nắm quyền ở Đàng Ngoài) và Nguyễn (cai quản Đàng Trong) trở nên gay gắt."
+            },
+            {
+                q: "Câu 7: Đặc điểm vị trí địa lý Việt Nam là:",
+                options: [
+                    "A. Nằm hoàn toàn trong nội địa châu Á",
+                    "B. Thuộc bán cầu Tây",
+                    "C. Nằm ở vùng ôn đới của châu Á",
+                    "D. Phía đông và nam giáp Biển Đông, phía bắc giáp Trung Quốc, phía tây giáp Lào và Campuchia"
+                ],
+                correct: 3,
+                explanation: "Việt Nam nằm ở rìa phía đông của bán đảo Đông Dương, có biên giới đất liền giáp Trung Quốc, Lào, Campuchia và đường bờ biển dài giáp Biển Đông."
+            },
+            {
+                q: "Câu 8: Phạm vi lãnh thổ nước ta bao gồm:",
+                options: [
+                    "A. Chỉ phần đất liền",
+                    "B. Chỉ các đảo có người sinh sống",
+                    "C. Đất liền và các vùng biển lân cận",
+                    "D. Đất liền, vùng biển, đảo, thềm lục địa và không gian trên cao tương ứng"
+                ],
+                correct: 3,
+                explanation: "Lãnh thổ quốc gia toàn vẹn bao gồm vùng đất (đất liền, đảo), vùng biển (kể cả thềm lục địa) và vùng trời (không gian bao trùm lên trên)."
+            },
+            {
+                q: "Câu 9: Đặc điểm chung của địa hình Việt Nam là:",
+                options: [
+                    "A. Đồi núi chiếm khoảng 3/4 diện tích, đa phần là đồi núi thấp",
+                    "B. Đồng bằng chiếm hơn nửa diện tích cả nước",
+                    "C. Địa hình chủ yếu là núi cao trên 2 000 m",
+                    "D. Địa hình bằng phẳng, hướng nghiêng từ đông sang tây"
+                ],
+                correct: 0,
+                explanation: "Địa hình Việt Nam đồi núi chiếm 3/4 diện tích lãnh thổ nhưng chủ yếu là đồi núi thấp (dưới 1000m chiếm tới 85%)."
+            },
+            {
+                q: "Câu 10: Khoáng sản năng lượng tập trung chủ yếu ở những vùng nào?",
+                options: [
+                    "A. Đồng bằng sông Hồng và sông Cửu Long",
+                    "B. Đông Bắc (than), Đông Nam và thềm lục địa (dầu khí)",
+                    "C. Tây Nguyên và Duyên hải Nam Trung Bộ",
+                    "D. Tây Bắc và Bắc Trung Bộ"
+                ],
+                correct: 1,
+                explanation: "Vùng than lớn nhất ở Quảng Ninh (Đông Bắc), và mỏ dầu khí có trữ lượng lớn nằm ở thềm lục địa phía Nam."
+            },
+            {
+                q: "Câu 11: Ảnh hưởng của địa hình đa dạng đến sự phát triển kinh tế là:",
+                options: [
+                    "A. Gây khó khăn trong giao thông, không có lợi gì",
+                    "B. Làm nông nghiệp khó phát triển",
+                    "C. Tạo điều kiện phát triển nhiều ngành kinh tế khác nhau",
+                    "D. Chỉ thuận lợi cho khai thác khoáng sản"
+                ],
+                correct: 2,
+                explanation: "Địa hình đa dạng (núi, cao nguyên, đồng bằng, ven biển) tạo ra sự phân hóa tự nhiên, giúp mỗi vùng có thế mạnh kinh tế riêng (lâm nghiệp, thủy điện, lúa nước, thủy hải sản...)."
+            },
+            {
+                q: "Câu 12: Tại sao cần sử dụng hợp lý tài nguyên khoáng sản?",
+                options: [
+                    "A. Vì khoáng sản có số lượng lớn, không bao giờ cạn kiệt",
+                    "B. Vì khoáng sản là tài nguyên không tái tạo, có hạn",
+                    "C. Vì giá khoáng sản luôn giảm",
+                    "D. Vì chỉ có một vài loại khoáng sản"
+                ],
+                correct: 1,
+                explanation: "Khoáng sản phải mất hàng triệu năm mới hình thành nên được xếp vào loại tài nguyên không thể tái tạo, nếu khai thác bừa bãi sẽ cạn kiệt nhanh chóng."
+            },
+            {
+                q: "Câu 13: Cuộc Cách mạng tư sản nào diễn ra sớm nhất trong các cuộc sau?",
+                options: [
+                    "A. Cách mạng tư sản Pháp",
+                    "B. Cách mạng tư sản Anh",
+                    "C. Cuộc chiến tranh giành độc lập Bắc Mỹ",
+                    "D. Cách mạng tháng Tám Việt Nam"
+                ],
+                correct: 1,
+                explanation: "Cách mạng tư sản Anh bùng nổ năm 1642, sớm hơn chiến tranh giành độc lập Bắc Mỹ (1775) và Cách mạng tư sản Pháp (1789)."
+            },
+            {
+                q: "Câu 14: Nguyên nhân chính bùng nổ Cuộc chiến tranh giành độc lập của Bắc Mỹ là gì?",
+                options: [
+                    "A. Nông dân nghèo không có ruộng đất",
+                    "B. Nô lệ phản kháng chủ nô",
+                    "C. Các nước châu Âu xâm lược",
+                    "D. Chính quyền Anh đàn áp, bóc lột các thuộc địa ở Bắc Mỹ"
+                ],
+                correct: 3,
+                explanation: "Thực dân Anh ban hành nhiều đạo luật cấm đoán kinh tế khắc nghiệt, vơ vét thuế má khiến mâu thuẫn giữa 13 thuộc địa Bắc Mỹ và chính quốc Anh trở nên gay gắt."
+            },
+            {
+                q: "Câu 15: Đâu là động lực chính thúc đẩy các nước phương Tây đẩy mạnh xâm chiếm các nước Đông Nam Á từ nửa sau thế kỷ XIX?",
+                options: [
+                    "A. Tìm kiếm quan hệ hữu nghị",
+                    "B. Cần thị trường, nguồn nguyên liệu và nơi đầu tư vốn",
+                    "C. Truyền bá văn hóa dân gian",
+                    "D. Giúp các nước phát triển kinh tế"
+                ],
+                correct: 1,
+                explanation: "Sự phát triển mạnh mẽ của CNTB phương Tây đòi hỏi nguồn nguyên liệu lớn và thị trường tiêu thụ mới, biến ĐNA thành mục tiêu béo bở."
+            },
+            {
+                q: "Câu 16: Về chính trị, dưới ách đô hộ của thực dân phương Tây, các nước Đông Nam Á thường có đặc điểm nào?",
+                options: [
+                    "A. Độc lập, tự chủ quyết định mọi việc",
+                    "B. Dân chúng được tham gia bầu cử đại biểu",
+                    "C. Chế độ chính quyền do nước đô hộ thiết lập, cai trị trực tiếp hoặc gián tiếp",
+                    "D. Giữ nguyên hoàn toàn bộ máy nhà nước cũ không thay đổi"
+                ],
+                correct: 2,
+                explanation: "Thực dân phương Tây tước bỏ độc lập tự chủ, thiết lập chính quyền tay sai hoặc trực tiếp cai trị nhằm dễ dàng bóc lột và đàn áp."
+            },
+            {
+                q: "Câu 17: Trong giai đoạn đô hộ, kinh tế các nước Đông Nam Á bị thực dân phương Tây định hướng phát triển theo hướng nào?",
+                options: [
+                    "A. Công nghiệp nặng hiện đại",
+                    "B. Nông nghiệp trồng lương thực cho người dân",
+                    "C. Kinh tế thuộc địa, sản xuất nguyên liệu và hàng hóa xuất khẩu",
+                    "D. Phát triển thương mại nội địa độc lập"
+                ],
+                correct: 2,
+                explanation: "Kinh tế ĐNA bị biến thành phần phụ thuộc, bị kìm hãm công nghiệp nặng, chỉ tập trung khai thác khoáng sản và trồng cây công nghiệp để xuất khẩu về chính quốc."
+            },
+            {
+                q: "Câu 18: Ý nghĩa chính của các cuộc cách mạng tư sản là gì?",
+                options: [
+                    "A. Giữ nguyên chế độ vua chúa phong kiến như cũ",
+                    "B. Lật đổ chế độ phong kiến, mở đường cho chủ nghĩa tư bản phát triển",
+                    "C. Ngăn cản sự phát triển của khoa học – kỹ thuật",
+                    "D. Thống nhất tất cả các nước thành một quốc gia"
+                ],
+                correct: 1,
+                explanation: "Cách mạng tư sản xóa bỏ rào cản phong kiến lạc hậu, tạo lập thể chế tư bản chủ nghĩa giúp lực lượng sản xuất phát triển mạnh mẽ."
+            },
+            {
+                q: "Câu 19: Tại sao các phong trào đấu tranh chống thực dân ở Đông Nam Á giai đoạn đầu (trước đầu thế kỷ XX) hầu hết thất bại?",
+                options: [
+                    "A. Nhân dân không yêu nước",
+                    "B. Nhân dân không dám đứng lên đấu tranh",
+                    "C. Thực dân tự nguyện rút đi",
+                    "D. Chưa có đường lối lãnh đạo thống nhất, phong trào còn tự phát"
+                ],
+                correct: 3,
+                explanation: "Giai đoạn này chưa có giai cấp tiên tiến lãnh đạo, vũ khí thô sơ, đấu tranh lẻ tẻ tự phát nên dễ bị thực dân đàn áp."
+            },
+            {
+                q: "Câu 20: Về phạm vi lãnh thổ, nhận định nào sau đây đúng?",
+                options: [
+                    "A. Bao gồm phần đất liền, vùng biển, hải đảo và không gian trên cao tương ứng",
+                    "B. Chỉ có phần đất liền, không có vùng biển và hải đảo",
+                    "C. Chỉ bao gồm các hòn đảo lớn ven bờ",
+                    "D. Phạm vi chỉ giới hạn trong đường biên giới trên đất liền"
+                ],
+                correct: 0,
+                explanation: "Đây là định nghĩa chuẩn về lãnh thổ quốc gia đầy đủ: Đất liền, biển, đảo và vùng trời."
+            },
+            {
+                q: "Câu 21: Phát biểu nào đúng?",
+                options: [
+                    "A. Nước ta giáp Biển Đông",
+                    "B. Nước ta không giáp biển",
+                    "C. Nước ta chỉ giáp một nước khác",
+                    "D. Nước ta không có đảo nào"
+                ],
+                correct: 0,
+                explanation: "Việt Nam có đường bờ biển dài 3260km ôm trọn phía Đông và Nam giáp Biển Đông, cùng hàng nghìn hòn đảo lớn nhỏ."
+            },
+            {
+                q: "Câu 22: Phía bắc nước ta giáp nước nào?",
+                options: ["A. Thái Lan", "B. Nhật Bản", "C. Trung Quốc", "D. Ấn Độ"],
+                correct: 2,
+                explanation: "Đường biên giới phía Bắc của Việt Nam hoàn toàn giáp với Cộng hòa Nhân dân Trung Hoa."
+            },
+            {
+                q: "Câu 23: Đặc điểm nào phản ánh đúng nhất sự phân bố tài nguyên khoáng sản của nước ta?",
+                options: [
+                    "A. Tập trung chủ yếu ở vùng đồng bằng sông Cửu Long",
+                    "B. Phân bố rộng khắp trên cả nước nhưng không đều, mỗi vùng có loại khoáng sản đặc trưng",
+                    "C. Tất cả các mỏ khoáng sản đều nằm ở vùng biển và thềm lục địa",
+                    "D. Chỉ có ở miền Bắc, các miền khác hầu như không có"
+                ],
+                correct: 1,
+                explanation: "Khoáng sản phân bố rộng nhưng không đều. Than đá chủ yếu ở Đông Bắc, Apatit ở Tây Bắc, Dầu khí ở thềm lục địa phía Nam..."
+            },
+            {
+                q: "Câu 24: Trường hợp nào phản ánh chính xác nhất ảnh hưởng của sự phân hoá địa hình đến hướng khai thác kinh tế?",
+                options: [
+                    "A. Vùng đồng bằng: địa hình bằng phẳng, đất màu mỡ → tập trung lúa nước; Vùng đồi núi: dốc → phát triển lâm nghiệp, khoáng sản",
+                    "B. Vùng đồi núi thấp nên đào bằng hết để trồng lúa nước giống đồng bằng",
+                    "C. Tất cả các tỉnh đều ưu tiên phát triển du lịch biển dù không có bờ biển",
+                    "D. Vùng cao nguyên địa hình bằng nên xây dựng hệ thống thủy điện lớn nhất cả nước"
+                ],
+                correct: 0,
+                explanation: "Việc khai thác kinh tế phải thuận theo tự nhiên: đồng bằng phù sa hợp lúa nước, đồi núi hợp lâm nghiệp và cây công nghiệp lâu năm."
+            }
+        ];
+
+        const dataPart2 = [
+            {
+                q: "Câu 25: Về cách mạng tư sản và cách mạng công nghiệp (Đúng/Sai)",
+                statements: [
+                    { text: "1. Cách mạng tư sản Anh diễn ra sớm nhất và kéo dài qua nhiều giai đoạn", isCorrect: true, exp: "Đây là cuộc CMTS tiêu biểu đầu tiên (thế kỷ 17), trải qua nội chiến quân chủ và nghị viện." },
+                    { text: "2. Cách mạng công nghiệp chỉ có tác dụng làm giàu cho chủ tư sản, không ảnh hưởng gì đến đời sống nhân dân", isCorrect: false, exp: "CM Công nghiệp làm thay đổi hoàn toàn đời sống xã hội, hình thành giai cấp công nhân và gây ra nhiều hệ lụy bóc lột." },
+                    { text: "3. Cách mạng tư sản thiết lập chế độ quân chủ chuyên chế phong kiến như cũ", isCorrect: false, exp: "Mục tiêu của CMTS là lật đổ phong kiến, lập ra chế độ Cộng hòa hoặc Quân chủ lập hiến." },
+                    { text: "4. Động cơ hơi nước được ứng dụng trong nhà máy, tàu thủy, tàu hỏa, thúc đẩy giao thông phát triển", isCorrect: true, exp: "Động cơ hơi nước của J.Watt tạo ra bước ngoặt lớn trong sản xuất và giao thông vận tải thế kỷ 18-19." }
+                ]
+            },
+            {
+                q: "Câu 26: Về Đông Nam Á dưới ách đô hộ và đấu tranh giải phóng (Đúng/Sai)",
+                statements: [
+                    { text: "1. Thực dân phương Tây định hướng kinh tế Đông Nam Á phát triển thành vùng cung cấp nguyên liệu và thị trường tiêu thụ", isCorrect: true, exp: "Chúng biến ĐNA thành phụ thuộc kinh tế, vơ vét tài nguyên." },
+                    { text: "2. Tất cả các nước Đông Nam Á đều bị một nước thực dân cai trị giống nhau", isCorrect: false, exp: "Các nước bị chia cho nhiều đế quốc khác nhau: Pháp (Đông Dương), Anh (Mã Lai), Hà Lan (Nam Dương)... (Thái Lan giữ được độc lập)." },
+                    { text: "3. Từ đầu thế kỷ XX, phong trào đấu tranh có sự tham gia của các tầng lớp nhân dân rộng rãi", isCorrect: true, exp: "Sự xuất hiện của công nhân và tư sản dân tộc làm phong trào mang màu sắc mới, lôi cuốn đông đảo quần chúng." },
+                    { text: "4. Dưới thời đô hộ, văn hóa bản địa hoàn toàn bị xóa bỏ và thay thế bằng văn hóa phương Tây", isCorrect: false, exp: "Văn hóa phương Tây du nhập nhưng văn hóa bản địa truyền thống vẫn được nhân dân gìn giữ." }
+                ]
+            },
+            {
+                q: "Câu 27: Về địa hình, khoáng sản và phát triển kinh tế (Đúng/Sai)",
+                statements: [
+                    { text: "1. Địa hình nghiêng chủ yếu từ bắc xuống nam và từ tây sang đông", isCorrect: false, exp: "Hướng nghiêng chung của địa hình Việt Nam là Tây Bắc - Đông Nam." },
+                    { text: "2. Các đồng bằng lớn là nơi tập trung dân cư và phát triển nông nghiệp thâm canh", isCorrect: true, exp: "Đồng bằng sông Hồng và sông Cửu Long là vựa lúa và nơi đông dân nhất cả nước." },
+                    { text: "3. Vùng đồi núi địa hình dốc nên không thể xây dựng thủy điện", isCorrect: false, exp: "Địa hình dốc tạo độ rơi lớn cho sông ngòi, chính là điều kiện lý tưởng nhất để xây dựng thủy điện (như Hòa Bình, Sơn La)." },
+                    { text: "4. Đặc điểm phân bố khoáng sản quyết định việc phân bố các ngành công nghiệp khai thác", isCorrect: true, exp: "Công nghiệp khai thác phải đặt gần nơi có mỏ khoáng sản để tối ưu vận chuyển." }
+                ]
+            },
+            {
+                q: "Câu 28: Đặc điểm phong trào đấu tranh giai đoạn cuối thế kỷ XIX (Đúng/Sai)",
+                statements: [
+                    { text: "1. Phong trào ban đầu chủ yếu do quý tộc, sĩ phu, địa chủ lãnh đạo", isCorrect: true, exp: "Lãnh đạo tiêu biểu thời kỳ này là các quan lại yêu nước, sĩ phu (như phong trào Cần Vương ở VN)." },
+                    { text: "2. Từ đầu đã có sự liên kết chặt chẽ, thống nhất giữa các vùng", isCorrect: false, exp: "Đặc điểm giai đoạn này là lẻ tẻ, tự phát, thiếu sự liên kết toàn quốc." },
+                    { text: "3. Mục tiêu chung là chống thực dân, bảo vệ độc lập dân tộc", isCorrect: true, exp: "Dù lực lượng nào lãnh đạo thì mục tiêu cao nhất vẫn là giành lại độc lập." },
+                    { text: "4. Ngay giai đoạn này đã giành được thắng lợi hoàn toàn, giải phóng đất nước", isCorrect: false, exp: "Do hạn chế về giai cấp lãnh đạo và vũ khí nên các phong trào cuối TK19 đều thất bại." }
+                ]
+            },
+            {
+                q: "Câu 29: Ý nào đúng/sai về cuộc cách mạng tư sản?",
+                statements: [
+                    { text: "1. Cuộc cách mạng do giai cấp tư sản lãnh đạo, nhằm lật đổ phong kiến, mở đường cho CNTB phát triển", isCorrect: true, exp: "Đây là khái niệm chuẩn xác về mục tiêu của CMTS." },
+                    { text: "2. Cách mạng tư sản chỉ diễn ra ở các nước châu Âu, hoàn toàn không có ở các châu lục khác", isCorrect: false, exp: "Chiến tranh giành độc lập ở Bắc Mỹ (châu Mỹ) cũng là một cuộc cách mạng tư sản tiêu biểu." },
+                    { text: "3. Trong các cuộc cách mạng tư sản từ thế kỷ XVI đến XVIII, nước Anh và Pháp đều là nơi diễn ra tiêu biểu", isCorrect: true, exp: "CMTS Anh (TK 17) và Đại cách mạng Pháp (1789) là những mốc son lớn nhất." },
+                    { text: "4. Đặc điểm nổi bật của cách mạng tư sản Anh là diễn ra hoàn toàn bằng hòa bình", isCorrect: false, exp: "CMTS Anh đã trải qua hai cuộc nội chiến đẫm máu giữa quân đội nhà vua và nghị viện." }
+                ]
+            },
+            {
+                q: "Câu 30: Về địa hình, tài nguyên khoáng sản và sự phân hóa lãnh thổ tự nhiên (Đúng/Sai)",
+                statements: [
+                    { text: "1. Nước ta chủ yếu là đồi núi, đa phần có độ cao dưới 1000 m.", isCorrect: true, exp: "Đồi núi chiếm 3/4 diện tích, trong đó 85% là đồi núi thấp dưới 1000m." },
+                    { text: "2. Đồng bằng Việt Nam chiếm khoảng 1/2 diện tích cả nước, phân bố đều khắp.", isCorrect: false, exp: "Đồng bằng chỉ chiếm 1/4 diện tích, phân bố chủ yếu ở ven biển và 2 châu thổ lớn." },
+                    { text: "3. Tài nguyên khoáng sản đa dạng, nhiều mỏ lớn tập trung chủ yếu ở miền núi phía Bắc.", isCorrect: false, exp: "Khoáng sản đa dạng, nhưng phần lớn là mỏ vừa và nhỏ, phân tán khắp nơi (thềm lục địa, Tây Nguyên, Đông Bắc...)." },
+                    { text: "4. Sự phân hóa địa hình ảnh hưởng đến hướng phát triển kinh tế: vùng núi phát triển lâm nghiệp; đồng bằng trồng lúa nước.", isCorrect: true, exp: "Sự khác biệt về đất đai, địa hình tạo nên thế mạnh kinh tế riêng biệt cho từng vùng." }
+                ]
+            }
+        ];
+
+        // --- STATE VARIABLES ---
+        let currentQuestions = []; // Combined sequence for the current attempt
+        let currentRenderIndex = 0; // Tracks which question we are displaying
+        
+        let attempts = parseInt(localStorage.getItem('lsdl8_attempts')) || 0;
+        let studentName = "";
+        let studentClass = "";
+        
+        let correctCount = 0;
+        let wrongCount = 0;
+        let completedCount = 0;
+        let scoreTotalItems = 48; // 24 MCQ + (6 * 4 T/F)
+
+        let audioCtx;
+
+        // --- AUDIO FUNCTIONS ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(isCorrect) {
+            initAudio();
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (isCorrect) {
+                // High pitch beep
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.2);
+            } else {
+                // Low pitch buzz
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- UTILS ---
+        function shuffleArray(arr) {
+            let copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function updateStatsUI() {
+            document.getElementById('ui-attempts').innerText = attempts;
+            document.getElementById('ui-completed').innerText = completedCount;
+            document.getElementById('ui-correct').innerText = correctCount;
+            document.getElementById('ui-wrong').innerText = wrongCount;
+        }
+
+        // --- LOGIC ---
+        function startQuiz() {
+            const name = document.getElementById('student-name').value.trim();
+            if (!name) {
+                const input = document.getElementById('student-name');
+                input.style.borderColor = 'red';
+                setTimeout(() => input.style.borderColor = '#cbd5e1', 1000);
+                return;
+            }
+
+            studentName = name;
+            studentClass = document.getElementById('student-class').value.trim() || "Không rõ";
+            
+            initAudio();
+            attempts++;
+            localStorage.setItem('lsdl8_attempts', attempts);
+
+            prepareQuestions();
+            
+            // Reset UI State
+            document.getElementById('quiz-flow').innerHTML = '';
+            correctCount = 0;
+            wrongCount = 0;
+            completedCount = 0;
+            currentRenderIndex = 0;
+            
+            updateStatsUI();
+            document.getElementById('stats-bar').style.display = 'flex';
+            showScreen('screen-quiz');
+            
+            renderNextQuestion();
+        }
+
+        function prepareQuestions() {
+            // Deep copy to avoid mutating original states across retries
+            let p1 = dataPart1.map(q => ({...q, type: 'mcq'}));
+            let p2 = dataPart2.map(q => ({
+                q: q.q,
+                type: 'tf',
+                statements: q.statements.map(s => ({...s}))
+            }));
+
+            // Shuffle internally if attempts > 1
+            if (attempts > 1) {
+                p1 = shuffleArray(p1);
+                p2 = shuffleArray(p2);
+            }
+
+            currentQuestions = [...p1, ...p2];
+        }
+
+        function renderNextQuestion() {
+            if (currentRenderIndex >= currentQuestions.length) {
+                finishQuiz();
+                return;
+            }
+
+            const qData = currentQuestions[currentRenderIndex];
+            const qId = currentRenderIndex;
+            const bgClass = qId % 2 === 0 ? 'bg-style-0' : 'bg-style-1';
+            
+            const card = document.createElement('div');
+            card.className = `question-card ${bgClass}`;
+            card.id = `card-${qId}`;
+
+            let html = `<div class="question-title">${qData.q}</div>`;
+
+            if (qData.type === 'mcq') {
+                html += `<div class="options-list">`;
+                qData.options.forEach((opt, idx) => {
+                    html += `<button class="option-btn" id="btn-mcq-${qId}-${idx}" onclick="handleMCQ(${qId}, ${idx})">${opt}</button>`;
+                });
+                html += `</div>`;
+                html += `<div class="explanation" id="exp-${qId}">${qData.explanation}</div>`;
+            } else if (qData.type === 'tf') {
+                qData.statements.forEach((stmt, idx) => {
+                    html += `
+                        <div class="tf-item">
+                            <div class="tf-text">${stmt.text}</div>
+                            <div class="tf-actions">
+                                <button class="tf-btn" id="btn-tf-${qId}-${idx}-true" onclick="handleTF(${qId}, ${idx}, true)">ĐÚNG</button>
+                                <button class="tf-btn" id="btn-tf-${qId}-${idx}-false" onclick="handleTF(${qId}, ${idx}, false)">SAI</button>
+                            </div>
+                        </div>
+                        <div class="explanation" id="exp-tf-${qId}-${idx}">${stmt.exp}</div>
+                    `;
+                });
+                qData.answeredCount = 0;
+            }
+
+            html += `
+                <div class="action-area">
+                    <button class="btn btn-next" id="next-${qId}" onclick="goToNext(${qId})" disabled>CÂU TIẾP THEO</button>
+                </div>
+            `;
+
+            card.innerHTML = html;
+            document.getElementById('quiz-flow').appendChild(card);
+            
+            // Auto scroll to the new question
+            setTimeout(() => {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
+        // --- EVENT HANDLERS ---
+        window.handleMCQ = function(qId, selectedIdx) {
+            const qData = currentQuestions[qId];
+            if (qData.answered) return;
+            qData.answered = true;
+
+            const isCorrect = (selectedIdx === qData.correct);
+            playSound(isCorrect);
+
+            if (isCorrect) correctCount++; else wrongCount++;
+            
+            // UI Updates
+            qData.options.forEach((_, idx) => {
+                const btn = document.getElementById(`btn-mcq-${qId}-${idx}`);
+                btn.disabled = true;
+                if (idx === qData.correct) {
+                    btn.classList.add('correct');
+                } else if (idx === selectedIdx && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            if (!isCorrect) {
+                document.getElementById(`exp-${qId}`).style.display = 'block';
+            }
+
+            document.getElementById(`next-${qId}`).disabled = false;
+            updateStatsUI();
+        }
+
+        window.handleTF = function(qId, stmtIdx, userChoice) {
+            const qData = currentQuestions[qId];
+            const stmt = qData.statements[stmtIdx];
+            if (stmt.answered) return;
+            stmt.answered = true;
+            qData.answeredCount++;
+
+            const isCorrect = (userChoice === stmt.isCorrect);
+            playSound(isCorrect);
+
+            if (isCorrect) correctCount++; else wrongCount++;
+
+            const btnTrue = document.getElementById(`btn-tf-${qId}-${stmtIdx}-true`);
+            const btnFalse = document.getElementById(`btn-tf-${qId}-${stmtIdx}-false`);
+            
+            btnTrue.disabled = true;
+            btnFalse.disabled = true;
+
+            const selectedBtn = userChoice ? btnTrue : btnFalse;
+            
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+            } else {
+                selectedBtn.classList.add('wrong');
+                // Show Correct choice slightly
+                const correctBtn = stmt.isCorrect ? btnTrue : btnFalse;
+                correctBtn.style.borderColor = 'var(--success)';
+                correctBtn.style.color = 'var(--success)';
+                // Show Explanation
+                document.getElementById(`exp-tf-${qId}-${stmtIdx}`).style.display = 'block';
+            }
+
+            if (qData.answeredCount === 4) {
+                document.getElementById(`next-${qId}`).disabled = false;
+            }
+            updateStatsUI();
+        }
+
+        window.goToNext = function(qId) {
+            // Hide the next button of the completed question to clean up UI
+            document.getElementById(`next-${qId}`).style.display = 'none';
+            completedCount++;
+            currentRenderIndex++;
+            updateStatsUI();
+            renderNextQuestion();
+        }
+
+        function finishQuiz() {
+            document.getElementById('stats-bar').style.display = 'none';
+            showScreen('screen-result');
+            
+            document.getElementById('res-name').innerText = studentName;
+            document.getElementById('res-class').innerText = studentClass;
+            document.getElementById('res-attempts').innerText = attempts;
+            document.getElementById('res-correct').innerText = correctCount;
+
+            const ratio = correctCount / scoreTotalItems;
+            let msg = "";
+            if (ratio >= 0.9) msg = "Tuyệt vời! Em nắm bài rất vững. Hãy phát huy nhé!";
+            else if (ratio >= 0.7) msg = "Rất tốt! Cố gắng ôn thêm các câu bị sai để đạt điểm tối đa.";
+            else if (ratio >= 0.5) msg = "Khá khen cho sự nỗ lực! Em hãy đọc kỹ lại phần giải thích.";
+            else msg = "Đừng nản chí! Hãy làm lại bài để củng cố kiến thức nhé.";
+            
+            document.getElementById('res-msg').innerText = msg;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.retryQuiz = function() {
+            startQuiz(); // will increment attempt, shuffle, and reset UI
+        }
+    </script>
+</body>
+</html>
